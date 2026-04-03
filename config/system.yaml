@@ -1,0 +1,68 @@
+sim:
+  mode: fast_rms
+  dt: 0.002
+  t_end: 24.0
+  f_grid: 50.0
+  seed: 7
+  compress_24h_to_seconds: 24.0
+  # Faster settings used during PID autotune and OFO iterations (keeps the optimization practical)
+  eval_dt: 0.01
+  eval_t_end: 120.0
+
+grid:
+  # Absolute RMS constraint around nominal 230 Vrms phase-to-neutral
+  v_phase_rms_nom: 230.0
+  v_phase_rms_min: 220.0   # 230 - 10
+  v_phase_rms_max: 240.0   # 230 + 10
+
+lines:
+  # Per-phase series RL between PCC and VSC connection buses
+  PCC_A: {R: 0.08, L: 1.8e-3}
+  PCC_B: {R: 0.10, L: 2.2e-3}
+
+dc_bus:
+  vdc_nom: 850.0
+  # Effective DC-bus energy storage ("aggregated" DC link). If you set this too
+  # small (e.g., 0.02), the bus becomes extremely stiff and you will see large
+  # swings in Vdc for typical 100–300 kW imbalances.
+  Cdc: 2.0
+  vdc_min: 842.0
+  vdc_max: 858.0
+
+secondary:
+  P_share_alpha: 0.50
+  enable_export: true
+  P_import_max_kw: 500
+  P_export_max_kw: 500
+
+vsc:
+  tau_p: 0.15
+  tau_q: 0.20
+  k_id: 1000.0
+  k_iq: 1000.0
+
+profiles:
+  Q_over_P: 0.20
+
+  # PV and Wind available power (kW) over 24 points (hourly)
+  pv_24h_kw: [0,0,0,0,5,10,20,30,50,80,120,160,180,190,180,160,120,70,30,10,0,0,0,0]
+  wind_24h_kw: [45,42,40,38,35,32,28,25,22,20,18,16,15,15,18,22,28,35,40,45,50,55,52,48]
+
+  # DC load at DC bus (kW)
+  dc_load_24h_kw: [75,82,90,102,125,128,135,138,120,110,105,100,98,96,95,100,110,120,130,133,125,122,110,95]
+
+  # Aggregated AC loads (kW) fed by VSC-1 and VSC-2
+  ac_loadA_24h_kw: [55,58,60,62,65,70,75,80,85,90,95,100,98,95,90,85,80,75,70,65,60,58,56,55]
+  ac_loadB_24h_kw: [45,48,50,52,55,58,62,66,70,74,78,82,80,78,74,70,66,62,58,55,52,50,48,46]
+
+  # Optional step events (seconds in the compressed timeline)
+  # Example: apply a +50% DC load pulse around hour 10 (100 s)
+  dc_load_steps:
+    - {t_s: 100.0, t_e: 110.0, delta: 50.0}
+    - {t_s: 160.0, t_e: 170.0, delta: 30.0}
+
+  # AC load steps for stress tests
+  ac_loadA_steps:
+    - {t_s: 60.0, t_e: 70.0, delta: 40.0}
+  ac_loadB_steps:
+    - {t_s: 180.0, t_e: 190.0, delta: 35.0}
